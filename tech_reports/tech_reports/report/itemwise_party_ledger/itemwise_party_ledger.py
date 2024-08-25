@@ -500,22 +500,31 @@ def get_sales_invoice_items(result):
             d.particular = '{0}, {1}'.format(d.get('voucher_no'), d.get('against'))
 
         result_with_sales_items.append(d)
+
         if d.get('voucher_type') in ['Sales Invoice', 'Purchase Invoice'] and d.get('voucher_no'):
             table_name = d.get('voucher_type')
-            child_table_name = table_name + ' Item'
-            vouher_items = frappe.db.sql(
-                """SELECT item_name, qty, rate, amount,description FROM `tab%s` WHERE parent=%s AND parenttype=%s """
-                % (child_table_name, '%s', '%s'), (d.get('voucher_no'), table_name), as_dict=1)
-            for item in vouher_items:
+            child_table_name = f'{table_name} Item'
+
+            voucher_items = frappe.db.sql(
+                """
+                SELECT item_name, qty, rate, amount, description 
+                FROM `tab%s` 
+                WHERE parent = %s AND parenttype = %s
+                """ % (child_table_name, '%s', '%s'),
+                (d.get('voucher_no'), table_name),
+                as_dict=1
+            )
+
+            for item in voucher_items:
                 row = frappe._dict({
-                    'particular': f"{item.item_name}:{item.description}",
+                    'particular': f"{item.item_name}: {item.description or ''}",
                     'qty': item.qty,
                     'rate': item.rate,
                     'amount': item.amount
                 })
                 result_with_sales_items.append(row)
 
-    return result_with_sales_items
+        return result_with_sales_items
 
 
 def get_supplier_invoice_details():
