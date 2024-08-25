@@ -516,7 +516,7 @@ def get_sales_invoice_items(result):
             )
 
             for item in voucher_items:
-                row = frappe._dict({
+                row = frappe._dict.update({
                     'particular': f"{item.item_name}: {item.description or ''}",
                     'qty': item.qty,
                     'rate': item.rate,
